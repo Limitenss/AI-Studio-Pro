@@ -11,6 +11,12 @@ AI Studio Pro is a premium suite of power-user tools for ChatGPT and Gemini that
 - **📋 Autocopy**: Automatically copy AI-generated code blocks to your clipboard as they complete.
 - **🎨 Premium Aesthetic**: A sophisticated, dark-themed "Obsidian & Purple" UI designed for professional focus.
 
+## 📦 Downloads (Pre-built)
+
+For quick installation, use the pre-built packages:
+- **[Chrome / Edge / Brave (.zip)](ai-studio-pro-chrome.zip)**
+- **[Firefox (.xpi)](ai-studio-pro-firefox.xpi)**
+
 ## 🛠️ Installation
 
 ### Chrome / Edge / Brave
