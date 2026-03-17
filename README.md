@@ -15,6 +15,7 @@ AI Studio Pro is a premium suite of power-user tools for ChatGPT and Gemini that
 
 For quick installation, use the pre-built packages:
 - **[Chrome / Edge / Brave (.zip)](ai-studio-pro-chrome.zip)**
+- **[Chrome Signed (.crx)](ai-studio-pro.crx)**
 - **[Firefox (.xpi)](ai-studio-pro-firefox.xpi)**
 
 ## 🛠️ Installation
