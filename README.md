@@ -10,13 +10,6 @@ Developer toolset for ChatGPT and Gemini. Adds code block management, live previ
 | `Ctrl+Shift+R` | Refine last prompt |
 | `Ctrl+Shift+S` | Save code block |
 
-## Builds
-
-Production packages for manual installation:
-- [Chrome (.zip)](ai-studio-pro-chrome.zip)
-- [Chrome (.crx)](ai-studio-pro.crx)
-- [Firefox (.xpi)](ai-studio-pro-firefox.xpi)
-
 ## Local Setup
 
 ### Chrome
