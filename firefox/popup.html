@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="studio-container">
+    <header>
+      <div class="logo-section">
+        <h1>AI Studio</h1>
+        <span class="badge">PRO</span>
+      </div>
+      <p class="subtitle">Intelligent Assistant Suite</p>
+    </header>
+
+    <main>
+      <section class="card status-card">
+        <div class="status-indicator">
+          <div class="pulse"></div>
+          <span>Active & Ready</span>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Autocopy Blocks</span>
+            <span class="setting-desc">Copy code instantly after AI finishes</span>
+          </div>
+          <label class="studio-switch">
+            <input type="checkbox" id="autocopy-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item disabled">
+          <div class="setting-info">
+            <span class="setting-label">Prompt Library</span>
+            <span class="setting-desc">Manage custom shortcuts</span>
+          </div>
+          <span class="tag">Enabled</span>
+        </div>
+      </section>
+ 
+      <section class="info-section">
+        <div class="shortcut-hint">
+          <kbd>Ctrl+Shift+L</kbd> <span>Open Library</span>
+        </div>
+        <div class="shortcut-hint">
+          <kbd>Ctrl+Shift+R</kbd> <span>Refine Last</span>
+        </div>
+      </section>
+    </main>
+ 
+    <footer>
+      <p>AI Studio Pro v3.0.0</p>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
