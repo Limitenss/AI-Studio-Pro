@@ -287,6 +287,13 @@ function injectRefineGlobal() {
 /**
  * Scrapes the last user prompt from the DOM.
  */
+
+const findVariables = (text) => {
+  const regex = /{{(.*?)}}/g;
+  const matches = [...text.matchAll(regex)];
+  return matches.map(m => m[1]);
+}
+
 function findLastUserPrompt() {
   const isGemini = window.location.hostname.includes('gemini');
   const selectors = isGemini ? CONFIG.SELECTORS.GEMINI.PROMPT : CONFIG.SELECTORS.CHATGPT.PROMPT;
@@ -414,7 +421,7 @@ function injectPromptLibrary() {
   document.getElementById('ai-cancel-prompt').onclick = () => document.getElementById('ai-studio-add-form').classList.add('hidden');
   document.getElementById('ai-save-prompt').onclick = saveNewPrompt;
   document.getElementById('ai-studio-add-workspace').onclick = createWorkspace;
-  
+
   const wsSelect = document.getElementById('ai-workspace-select');
   wsSelect.onchange = (e) => {
     currentWorkspaceId = e.target.value;
@@ -432,19 +439,79 @@ function injectPromptLibrary() {
   renderSidebarItems();
 }
 
+function showVariableForm(template, variables) {
+  const overlay = document.createElement('div');
+  overlay.className = 'variable-form-overlay';
+
+  let formHTML = '<h3>Fill Variables</h3>'
+  formHTML += '<div class="var-inputs-container">';
+  variables.forEach(v => {
+    formHTML += `<input type="text" placeholder="${v}" data-var="${v}" class="var-input">`;
+  });
+  formHTML += '</div>';
+  formHTML += `
+    <div class="form-actions">
+      <button id="inject-var-btn" class="ai-suite-button primary">Inject</button>
+      <button id="cancel-var-btn" class="ai-suite-button">Cancel</button>
+    </div>`;
+  overlay.innerHTML = formHTML;
+  document.body.appendChild(overlay);
+
+  // Draggable Implementation
+  let isDragging = false, offsetX, offsetY;
+  overlay.onmousedown = (e) => {
+    // Only drag if the user clicks exactly on the background (the "black part")
+    if (e.target !== overlay) return;
+    
+    isDragging = true;
+    overlay.style.cursor = 'grabbing';
+    
+    // Get actual current position accounting for transforms
+    const rect = overlay.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+  };
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      overlay.style.left = (e.clientX - offsetX) + 'px';
+      overlay.style.top = (e.clientY - offsetY) + 'px';
+      overlay.style.transform = 'none'; // Remove centering transform
+      overlay.style.margin = '0';      // Reset margins if any
+    }
+  });
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    if (overlay.isConnected) overlay.style.cursor = 'grab';
+  });
+
+  document.getElementById('inject-var-btn').onclick = () => {
+    let finalPrompt = template;
+    overlay.querySelectorAll('.var-input').forEach(input => {
+      const varName = input.dataset.var;
+      const varValue = input.value;
+      finalPrompt = finalPrompt.replace(`{{${varName}}}`, varValue);
+    });
+    refinePrompt(finalPrompt);
+    overlay.remove();
+    toggleSidebar();
+  };
+
+  document.getElementById('cancel-var-btn').onclick = () => overlay.remove();
+}
+
 function renderSidebarItems() {
   const container = document.getElementById('ai-studio-custom-list');
   const wsSelect = document.getElementById('ai-workspace-select');
   if (!container || !wsSelect) return;
-  
+
   // Update Select Options
-  wsSelect.innerHTML = workspaces.map(ws => 
+  wsSelect.innerHTML = workspaces.map(ws =>
     `<option value="${ws.id}" ${ws.id === currentWorkspaceId ? 'selected' : ''}>${ws.name}</option>`
   ).join('');
 
   container.innerHTML = '';
   const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId) || workspaces[0];
-  
+
   currentWS.prompts.forEach((p, index) => {
     const item = document.createElement('div');
     item.className = 'ai-studio-prompt-item custom';
@@ -459,10 +526,16 @@ function renderSidebarItems() {
     `;
     item.onclick = (e) => {
       if (e.target.closest('.ai-studio-delete-btn') || e.target.closest('.ai-studio-move-btn')) return;
-      refinePrompt(p.text);
-      toggleSidebar();
+      
+      const variables = findVariables(p.text);
+      if (variables.length > 0) {
+        showVariableForm(p.text, variables);
+      } else {
+        refinePrompt(p.text);
+        toggleSidebar();
+      }
     };
-    
+
     item.querySelector('.ai-studio-delete-btn').onclick = (e) => {
       e.stopPropagation();
       deletePrompt(index);
@@ -483,7 +556,7 @@ function saveNewPrompt() {
 
   const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId) || workspaces[0];
   currentWS.prompts.push({ name, text });
-  
+
   chrome.storage.local.set({ workspaces }, () => {
     document.getElementById('ai-prompt-name').value = '';
     document.getElementById('ai-prompt-text').value = '';
@@ -501,11 +574,11 @@ function deletePrompt(index) {
 function createWorkspace() {
   const name = prompt("Enter Workspace Name:");
   if (!name) return;
-  
+
   const id = 'ws-' + Date.now();
   workspaces.push({ id, name, prompts: [] });
   currentWorkspaceId = id;
-  
+
   chrome.storage.local.set({ workspaces, currentWorkspaceId }, () => {
     renderSidebarItems();
   });
@@ -517,17 +590,17 @@ function movePrompt(index) {
     alert("Create another workspace first to move prompts!");
     return;
   }
-  
+
   const wsList = otherWS.map((ws, i) => `${i + 1}. ${ws.name}`).join('\n');
   const choice = prompt(`Move prompt to:\n${wsList}\n(Enter number)`);
-  
+
   if (choice && otherWS[choice - 1]) {
     const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId);
     const targetWS = otherWS[choice - 1];
-    
+
     const [promptObj] = currentWS.prompts.splice(index, 1);
     targetWS.prompts.push(promptObj);
-    
+
     chrome.storage.local.set({ workspaces }, renderSidebarItems);
   }
 }

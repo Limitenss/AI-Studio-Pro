@@ -1,6 +1,9 @@
 # AI Studio Pro
 
-Developer toolset for ChatGPT and Gemini. Adds code block management, live previews, and a localized prompt library.
+A developer toolset for ChatGPT and Gemini that adds code block management, live previews, and a localized prompt library.
+
+## AI Declaration
+Antigravity is my IDE of choice, providing advanced AI-powered coding capabilities.
 
 ## Showcase
 
@@ -11,21 +14,30 @@ Developer toolset for ChatGPT and Gemini. Adds code block management, live previ
 
 | Keybind | Action |
 | --- | --- |
-| `Ctrl+Shift+L` | Toggle Library |
-| `Ctrl+Shift+R` | Refine last prompt |
-| `Ctrl+Shift+S` | Save code block |
+| `Ctrl+Shift+L` | Toggle Prompt Library |
+| `Ctrl+Shift+R` | Refine the last prompt |
+| `Ctrl+Shift+S` | Save the current code block |
+
+## Dynamic Variables
+
+Use `{{variable_name}}` anywhere in your custom prompt text. When selected, the extension will open a **movable glass modal** for you to fill in the placeholders before injection.
+
+**Example:**
+> "Rewrite this code in `{{language}}` focusing on `{{priority}}`."
+
+![Dynamic Variables modal showing input fields](demo/NVIDIA_Overlay_halF3dSPMT.png)
 
 ## Local Setup
 
 ### Chrome
 1. Open `chrome://extensions/`
 2. Toggle **Developer mode**
-3. Drag `.crx` onto the page or `Load unpacked` the `/chrome` directory.
+3. Drag the `.crx` file onto the page or use `Load unpacked` on the `/chrome` directory.
 
 ### Firefox
 1. Open `about:debugging`
-2. Click `This Firefox`
-3. `Load Temporary Add-on...` and select any file in `/firefox`.
+2. Click **This Firefox**
+3. Click `Load Temporary Add-on...` and select any file in the `/firefox` directory.
 
 ## License
 MIT. See `LICENSE`.
