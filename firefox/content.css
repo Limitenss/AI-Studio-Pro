@@ -1,6 +1,17 @@
 /* content.css - AI Studio Pro Premium Theme */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600&display=swap');
 
+:root {
+  --accent: #8b5cf6;
+  --accent-transparent: rgba(139, 92, 246, 0.2);
+  --accent-border: rgba(139, 92, 246, 0.4);
+  --glass-bg: rgba(10, 10, 11, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 12px;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+}
+
 /* GLOBAL BUTTON STYLES */
 .ai-suite-button {
   background: rgba(10, 10, 11, 0.85) !important;
@@ -154,11 +165,60 @@
 }
 
 .ai-studio-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 12px !important;
 }
+
+.workspace-selector-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex: 1 !important;
+}
+
+#ai-workspace-select {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 13px !important;
+  outline: none !important;
+  cursor: pointer !important;
+  max-width: 140px !important;
+}
+
+#ai-workspace-select option {
+  background: #0a0a0b !important;
+  color: #fff !important;
+}
+
+.prompt-actions {
+  display: flex !important;
+  gap: 8px !important;
+  opacity: 0;
+  transition: opacity 0.2s ease !important;
+}
+
+.ai-studio-prompt-item:hover .prompt-actions {
+  opacity: 1;
+}
+
+.ai-studio-move-btn, .ai-studio-delete-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  font-size: 14px !important;
+  transition: color 0.2s ease !important;
+}
+
+.ai-studio-move-btn:hover { color: var(--accent) !important; }
+.ai-studio-delete-btn:hover { color: #ff4b4b !important; }
 
 .ai-studio-small-btn {
   background: rgba(139, 92, 246, 0.2) !important;
@@ -264,8 +324,15 @@
 
 .ai-studio-prompt-item:hover {
   background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(139, 92, 246, 0.5) !important;
+  border-color: var(--accent) !important;
   transform: translateX(-2px) !important;
+}
+
+.ai-studio-prompt-item {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
 }
 
 .ai-studio-section-header h3 {

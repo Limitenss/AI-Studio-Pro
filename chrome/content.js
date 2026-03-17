@@ -34,20 +34,28 @@ const CONFIG = {
     'bash': 'sh', 'shell': 'sh', 'sql': 'sql',
     'yaml': 'yaml', 'yml': 'yaml', 'toml': 'toml',
     'markdown': 'md', 'md': 'md',
-    'svg': 'svg', 'xml': 'xml'
+    'svg': 'svg', 'xml': 'xml',
+    'jsx': 'jsx',
+    'tsx': 'tsx',
+    'vue': 'vue',
+    'svelte': 'svelte',
+    'sass': 'sass', 'scss': 'scss', 'less': 'less',
+    'docker': 'docker', 'dockerfile': 'dockerfile', 'docker-compose': 'docker-compose', 'docker-compose.yml': 'docker-compose.yml', 'docker-compose.yaml': 'docker-compose.yaml'
   }
 };
 
 let autocopyEnabled = false;
-let customPrompts = [];
+let workspaces = [{ id: 'default', name: 'My Prompts', prompts: [] }];
+let currentWorkspaceId = 'default';
 let lastCopiedBlock = null;
 
 // Initialize Storage
 try {
-  chrome.storage.local.get(['autocopy', 'customPrompts'], (res) => {
+  chrome.storage.local.get(['autocopy', 'workspaces', 'currentWorkspaceId'], (res) => {
     if (chrome.runtime.lastError) return;
     autocopyEnabled = !!res.autocopy;
-    customPrompts = res.customPrompts || [];
+    workspaces = res.workspaces || [{ id: 'default', name: 'My Prompts', prompts: [] }];
+    currentWorkspaceId = res.currentWorkspaceId || 'default';
   });
 } catch (e) {
   // Graceful fallback if storage fails
@@ -63,12 +71,12 @@ chrome.storage.onChanged.addListener((changes) => {
  */
 function injectCodeButtons() {
   const codeBlocks = document.querySelectorAll(CONFIG.SELECTORS.GLOBAL.CODE_BLOCKS);
-  
+
   codeBlocks.forEach(block => {
     block.classList.add('ai-suite-processed');
     const container = document.createElement('div');
     container.className = 'ai-suite-button-group';
-    
+
     // Save-As Button
     const saveBtn = document.createElement('button');
     saveBtn.className = 'ai-suite-button save-as-btn';
@@ -91,11 +99,11 @@ function injectCodeButtons() {
       previewBtn.onclick = (e) => { e.stopPropagation(); openLivePreview(block); };
       container.appendChild(previewBtn);
     }
-    
+
     // Platform-specific mounting
     const isGemini = window.location.hostname.includes('gemini');
     const header = block.closest('.code-block, .code-container, .bg-black, [class*="message"]')?.querySelector(CONFIG.SELECTORS.GLOBAL.HEADERS);
-    
+
     if (header) {
       if (isGemini) {
         const nativeCopy = header.querySelector('button[aria-label*="Copy"], .copy-button');
@@ -109,7 +117,7 @@ function injectCodeButtons() {
         container.classList.add('header-mount');
       }
     } else {
-      block.parentElement.style.position = 'relative'; 
+      block.parentElement.style.position = 'relative';
       block.parentElement.appendChild(container);
     }
   });
@@ -150,7 +158,7 @@ function detectLanguage(element) {
   if (text.includes('package main') && text.includes('func ')) return 'go';
   if (text.includes('<!DOCTYPE html>') || text.includes('</html>')) return 'html';
   if (text.includes('<svg') && text.includes('</svg>')) return 'svg';
-  
+
   return 'txt';
 }
 
@@ -190,7 +198,7 @@ function openLivePreview(block) {
     `;
     document.body.appendChild(previewWindow);
     document.getElementById('ai-studio-preview-close').onclick = () => previewWindow.style.display = 'none';
-    
+
     // Draggable Implementation
     let isDragging = false, offsetX, offsetY;
     const header = document.getElementById('ai-studio-preview-header');
@@ -207,7 +215,7 @@ function openLivePreview(block) {
     };
     document.onmouseup = () => isDragging = false;
   }
-  
+
   const code = block.querySelector('code')?.textContent || block.textContent;
   const frame = document.getElementById('ai-studio-preview-frame');
   const blob = new Blob([code], { type: 'text/html' });
@@ -223,7 +231,7 @@ function monitorGeneration() {
   const isGemini = window.location.hostname.includes('gemini');
   const stopBtnSelector = isGemini ? CONFIG.SELECTORS.GEMINI.STOP_BTN : CONFIG.SELECTORS.CHATGPT.STOP_BTN;
   const isGenerating = document.querySelector(stopBtnSelector);
-  
+
   if (!isGenerating) {
     const blocks = document.querySelectorAll('pre');
     if (blocks.length > 0) {
@@ -282,21 +290,21 @@ function injectRefineGlobal() {
 function findLastUserPrompt() {
   const isGemini = window.location.hostname.includes('gemini');
   const selectors = isGemini ? CONFIG.SELECTORS.GEMINI.PROMPT : CONFIG.SELECTORS.CHATGPT.PROMPT;
-  
+
   let candidates = [];
   selectors.forEach(sel => {
     const el = document.querySelectorAll(sel);
     if (el.length > 0) candidates.push(el[el.length - 1]);
   });
-  
+
   if (candidates.length === 0) return "";
-  
+
   const lastEl = candidates.sort((a, b) => b.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING ? 1 : -1)[0];
   if (!lastEl) return "";
 
   let clone = lastEl.cloneNode(true);
   clone.querySelectorAll('button, svg, .ai-suite-button, .user-name, .time, .avatar').forEach(e => e.remove());
-  
+
   return clone.innerText.trim().replace(/^(You said|You|Me|User|Assistant)[:\s\n\r]*/i, '').trim();
 }
 
@@ -326,7 +334,7 @@ function refinePrompt(text) {
 
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
-    
+
     if (isChatGPT && input.tagName === 'TEXTAREA') {
       input.style.height = 'auto';
       input.style.height = input.scrollHeight + 'px';
@@ -345,7 +353,7 @@ function refinePrompt(text) {
 
 function injectPromptLibrary() {
   if (document.getElementById('ai-studio-sidebar')) return;
-  
+
   const sidebar = document.createElement('div');
   sidebar.id = 'ai-studio-sidebar';
   sidebar.innerHTML = `
@@ -356,8 +364,11 @@ function injectPromptLibrary() {
     <div class="ai-studio-content">
       <div class="ai-studio-section">
         <div class="ai-studio-section-header">
-          <h3>My Prompts</h3>
-          <button id="ai-studio-add-prompt" class="ai-studio-small-btn">+ New</button>
+          <div class="workspace-selector-container">
+            <select id="ai-workspace-select"></select>
+            <button id="ai-studio-add-workspace" class="ai-studio-small-btn" title="New Workspace">+</button>
+          </div>
+          <button id="ai-studio-add-prompt" class="ai-studio-small-btn">+ New Prompt</button>
         </div>
         <div id="ai-studio-custom-list"></div>
         
@@ -396,12 +407,20 @@ function injectPromptLibrary() {
     </div>
   `;
   document.body.appendChild(sidebar);
-  
+
   document.getElementById('ai-studio-sidebar-close').onclick = toggleSidebar;
   document.getElementById('ai-studio-export-btn').onclick = exportSession;
   document.getElementById('ai-studio-add-prompt').onclick = () => document.getElementById('ai-studio-add-form').classList.toggle('hidden');
   document.getElementById('ai-cancel-prompt').onclick = () => document.getElementById('ai-studio-add-form').classList.add('hidden');
   document.getElementById('ai-save-prompt').onclick = saveNewPrompt;
+  document.getElementById('ai-studio-add-workspace').onclick = createWorkspace;
+  
+  const wsSelect = document.getElementById('ai-workspace-select');
+  wsSelect.onchange = (e) => {
+    currentWorkspaceId = e.target.value;
+    chrome.storage.local.set({ currentWorkspaceId });
+    renderSidebarItems();
+  };
 
   sidebar.querySelectorAll('.ai-studio-prompt-item').forEach(item => {
     item.onclick = () => {
@@ -415,24 +434,43 @@ function injectPromptLibrary() {
 
 function renderSidebarItems() {
   const container = document.getElementById('ai-studio-custom-list');
-  if (!container) return;
-  container.innerHTML = '';
+  const wsSelect = document.getElementById('ai-workspace-select');
+  if (!container || !wsSelect) return;
+  
+  // Update Select Options
+  wsSelect.innerHTML = workspaces.map(ws => 
+    `<option value="${ws.id}" ${ws.id === currentWorkspaceId ? 'selected' : ''}>${ws.name}</option>`
+  ).join('');
 
-  customPrompts.forEach((p, index) => {
+  container.innerHTML = '';
+  const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId) || workspaces[0];
+  
+  currentWS.prompts.forEach((p, index) => {
     const item = document.createElement('div');
     item.className = 'ai-studio-prompt-item custom';
     item.innerHTML = `
-      <strong>${p.name}</strong>
-      <button class="ai-studio-delete-btn" data-index="${index}">×</button>
+      <div class="prompt-info">
+        <strong>${p.name}</strong>
+      </div>
+      <div class="prompt-actions">
+        <button class="ai-studio-move-btn" title="Move to Workspace">📦</button>
+        <button class="ai-studio-delete-btn" data-index="${index}">×</button>
+      </div>
     `;
     item.onclick = (e) => {
-      if (e.target.classList.contains('ai-studio-delete-btn')) return;
+      if (e.target.closest('.ai-studio-delete-btn') || e.target.closest('.ai-studio-move-btn')) return;
       refinePrompt(p.text);
       toggleSidebar();
     };
+    
     item.querySelector('.ai-studio-delete-btn').onclick = (e) => {
       e.stopPropagation();
       deletePrompt(index);
+    };
+
+    item.querySelector('.ai-studio-move-btn').onclick = (e) => {
+      e.stopPropagation();
+      movePrompt(index);
     };
     container.appendChild(item);
   });
@@ -443,8 +481,10 @@ function saveNewPrompt() {
   const text = document.getElementById('ai-prompt-text').value;
   if (!name || !text) return;
 
-  customPrompts.push({ name, text });
-  chrome.storage.local.set({ customPrompts }, () => {
+  const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId) || workspaces[0];
+  currentWS.prompts.push({ name, text });
+  
+  chrome.storage.local.set({ workspaces }, () => {
     document.getElementById('ai-prompt-name').value = '';
     document.getElementById('ai-prompt-text').value = '';
     document.getElementById('ai-studio-add-form').classList.add('hidden');
@@ -453,18 +493,53 @@ function saveNewPrompt() {
 }
 
 function deletePrompt(index) {
-  customPrompts.splice(index, 1);
-  chrome.storage.local.set({ customPrompts }, renderSidebarItems);
+  const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId) || workspaces[0];
+  currentWS.prompts.splice(index, 1);
+  chrome.storage.local.set({ workspaces }, renderSidebarItems);
+}
+
+function createWorkspace() {
+  const name = prompt("Enter Workspace Name:");
+  if (!name) return;
+  
+  const id = 'ws-' + Date.now();
+  workspaces.push({ id, name, prompts: [] });
+  currentWorkspaceId = id;
+  
+  chrome.storage.local.set({ workspaces, currentWorkspaceId }, () => {
+    renderSidebarItems();
+  });
+}
+
+function movePrompt(index) {
+  const otherWS = workspaces.filter(ws => ws.id !== currentWorkspaceId);
+  if (otherWS.length === 0) {
+    alert("Create another workspace first to move prompts!");
+    return;
+  }
+  
+  const wsList = otherWS.map((ws, i) => `${i + 1}. ${ws.name}`).join('\n');
+  const choice = prompt(`Move prompt to:\n${wsList}\n(Enter number)`);
+  
+  if (choice && otherWS[choice - 1]) {
+    const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId);
+    const targetWS = otherWS[choice - 1];
+    
+    const [promptObj] = currentWS.prompts.splice(index, 1);
+    targetWS.prompts.push(promptObj);
+    
+    chrome.storage.local.set({ workspaces }, renderSidebarItems);
+  }
 }
 
 function exportSession() {
   console.log("AI Studio: Exporting session...");
   const userMessages = document.querySelectorAll('[data-message-author-role="user"], [data-testid="user-message"], user-query, .cl-user-message');
   const assistantMessages = document.querySelectorAll('[data-message-author-role="assistant"], [data-testid="bot-message"], model-response, .cl-message--assistant');
-  
+
   let markdown = "# AI Studio Session Export\n\n";
   const count = Math.max(userMessages.length, assistantMessages.length);
-  
+
   for (let i = 0; i < count; i++) {
     if (userMessages[i]) {
       let uText = userMessages[i].cloneNode(true);

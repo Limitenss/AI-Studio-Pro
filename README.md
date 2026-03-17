@@ -2,6 +2,11 @@
 
 Developer toolset for ChatGPT and Gemini. Adds code block management, live previews, and a localized prompt library.
 
+## Showcase
+
+![Gemini interface showing AI Studio Pro code block management with Save As and Preview buttons](demo/4vmczaua.png)
+![AI Studio Pro extension popup showing Active & Ready status, Autocopy Blocks toggle, and Prompt Library status](demo/ngl6jdxb.png)
+
 ## Usage
 
 | Keybind | Action |
