@@ -462,10 +462,10 @@ function showVariableForm(template, variables) {
   overlay.onmousedown = (e) => {
     // Only drag if the user clicks exactly on the background (the "black part")
     if (e.target !== overlay) return;
-    
+
     isDragging = true;
     overlay.style.cursor = 'grabbing';
-    
+
     // Get actual current position accounting for transforms
     const rect = overlay.getBoundingClientRect();
     offsetX = e.clientX - rect.left;
@@ -526,7 +526,7 @@ function renderSidebarItems() {
     `;
     item.onclick = (e) => {
       if (e.target.closest('.ai-studio-delete-btn') || e.target.closest('.ai-studio-move-btn')) return;
-      
+
       const variables = findVariables(p.text);
       if (variables.length > 0) {
         showVariableForm(p.text, variables);
@@ -665,9 +665,283 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+/**
+ * CODE COMMENTING FEATURE (MULTI-COMMENT SUPPORT WITH VISUAL HIGHLIGHTS)
+ */
+let currentSelection = { text: '', range: null, block: null };
+let pendingComments = [];
+let activeTooltip = null;
+
+function handleSelectionChange(e) {
+  if (e.target.closest('#ai-comment-trigger') ||
+    e.target.closest('.ai-studio-comment-box') ||
+    e.target.closest('.ai-studio-comment-tooltip')) return;
+
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+    removeCommentTrigger();
+    return;
+  }
+
+  const range = selection.getRangeAt(0);
+  const block = range.commonAncestorContainer.parentElement?.closest('pre');
+
+  if (block) {
+    const rect = range.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      currentSelection = { text: selection.toString(), range: range, block: block };
+      showCommentTrigger(rect);
+    }
+  } else {
+    removeCommentTrigger();
+  }
+}
+
+function showCommentTrigger(rect) {
+  let trigger = document.getElementById('ai-comment-trigger');
+  if (!trigger) {
+    trigger = document.createElement('div');
+    trigger.id = 'ai-comment-trigger';
+    trigger.className = 'ai-studio-comment-trigger';
+    trigger.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Comment`;
+
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showCommentBox();
+    });
+
+    document.body.appendChild(trigger);
+  }
+
+  const scrollX = window.scrollX || window.pageXOffset;
+  const scrollY = window.scrollY || window.pageYOffset;
+  trigger.style.left = `${scrollX + rect.left + (rect.width / 2) - (trigger.offsetWidth / 2)}px`;
+  trigger.style.top = `${scrollY + rect.top - trigger.offsetHeight - 10}px`;
+}
+
+function removeCommentTrigger() {
+  const trigger = document.getElementById('ai-comment-trigger');
+  if (trigger) trigger.remove();
+}
+
+function showCommentBox() {
+  const selectedText = currentSelection.text;
+  const fullContent = currentSelection.block.textContent;
+  const range = currentSelection.range;
+  removeCommentTrigger();
+
+  const box = document.createElement('div');
+  box.className = 'ai-studio-comment-box';
+
+  const rect = range.getBoundingClientRect();
+  const scrollX = window.scrollX || window.pageXOffset;
+  const scrollY = window.scrollY || window.pageYOffset;
+  box.style.left = `${scrollX + rect.left}px`;
+  box.style.top = `${scrollY + rect.bottom + 5}px`;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Comment on this snippet...';
+  box.appendChild(input);
+
+  const actions = document.createElement('div');
+  actions.className = 'ai-suite-button-group';
+
+  const addComment = () => {
+    const commentText = input.value.trim();
+    if (commentText) {
+      // Create Highlight
+      const highlight = document.createElement('span');
+      highlight.className = 'ai-studio-comment-highlight';
+      highlight.dataset.comment = commentText;
+      highlight.dataset.snippet = selectedText;
+
+      try {
+        range.surroundContents(highlight);
+      } catch (e) {
+        console.warn("Could not surround contents, using fallback highlight");
+      }
+
+      // Add to pending
+      let lineContext = "";
+      const index = fullContent.indexOf(selectedText);
+      if (index !== -1) {
+        const startOfLine = fullContent.lastIndexOf('\n', index) + 1;
+        let endOfLine = fullContent.indexOf('\n', index + selectedText.length);
+        if (endOfLine === -1) endOfLine = fullContent.length;
+        lineContext = fullContent.substring(startOfLine, endOfLine).trim();
+      }
+
+      pendingComments.push({
+        snippet: selectedText,
+        line: lineContext,
+        comment: commentText
+      });
+
+      // Fixed Hover bridge logic
+      highlight.onmouseenter = (e) => showCommentTooltip(e, highlight);
+      highlight.onmouseleave = (e) => {
+        setTimeout(() => {
+          if (activeTooltip && !activeTooltip.matches(':hover') && !highlight.matches(':hover')) {
+            activeTooltip.remove();
+            activeTooltip = null;
+          }
+        }, 100);
+      };
+
+      box.remove();
+      window.getSelection().removeAllRanges();
+    }
+  };
+
+  const sendAll = () => {
+    // Correctly process current input then send
+    const currentText = input.value.trim();
+    if (currentText) {
+      let lineContext = "";
+      const index = fullContent.indexOf(selectedText);
+      if (index !== -1) {
+        const startOfLine = fullContent.lastIndexOf('\n', index) + 1;
+        let endOfLine = fullContent.indexOf('\n', index + selectedText.length);
+        if (endOfLine === -1) endOfLine = fullContent.length;
+        lineContext = fullContent.substring(startOfLine, endOfLine).trim();
+      }
+      pendingComments.push({ snippet: selectedText, line: lineContext, comment: currentText });
+
+      // Visual feedback: also add highlight for the last one if sending
+      const highlight = document.createElement('span');
+      highlight.className = 'ai-studio-comment-highlight';
+      try { range.surroundContents(highlight); } catch (e) { }
+    }
+
+    if (pendingComments.length === 0) return;
+
+    let finalPrompt = "I have several comments regarding the code snippets below:\n\n";
+    pendingComments.forEach((item, i) => {
+      finalPrompt += `### 📝 Snippet #${i + 1}\n**Code:** \`${item.snippet}\`\n${item.line ? `**Line Context:** \`${item.line}\`\n` : ""}**💡 Comment:** ${item.comment}\n\n`;
+    });
+
+    refinePrompt(finalPrompt);
+    pendingComments = [];
+    box.remove();
+    window.getSelection().removeAllRanges();
+  };
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'ai-suite-button primary';
+  addBtn.textContent = 'Add';
+  addBtn.onclick = addComment;
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'ai-suite-button';
+  sendBtn.style.backgroundColor = 'var(--accent)';
+  sendBtn.style.color = 'white';
+  sendBtn.textContent = pendingComments.length > 0 ? `Send All (${pendingComments.length + 1})` : 'Send';
+
+  input.oninput = () => {
+    const count = pendingComments.length + (input.value.trim() ? 1 : 0);
+    sendBtn.textContent = count > 1 ? `Send All (${count})` : 'Send';
+  };
+
+  sendBtn.onclick = sendAll;
+
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      if (e.ctrlKey || e.metaKey) sendAll();
+      else addComment();
+    }
+    if (e.key === 'Escape') box.remove();
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'ai-suite-button';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.onclick = () => box.remove();
+
+  actions.appendChild(addBtn);
+  actions.appendChild(sendBtn);
+  actions.appendChild(cancelBtn);
+  box.appendChild(actions);
+
+  document.body.appendChild(box);
+  input.focus();
+}
+
+function showCommentTooltip(e, highlight) {
+  if (activeTooltip) activeTooltip.remove();
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'ai-studio-comment-tooltip';
+
+  const text = document.createElement('div');
+  text.className = 'tooltip-text';
+  text.innerHTML = `<strong>Comment:</strong><br>${highlight.dataset.comment}`;
+  tooltip.appendChild(text);
+
+  const actions = document.createElement('div');
+  actions.className = 'tooltip-actions';
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'ai-suite-button';
+  deleteBtn.style.color = '#ff4b4b !important';
+  deleteBtn.style.borderColor = 'rgba(255, 75, 75, 0.2) !important';
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.onclick = (e) => {
+    e.stopPropagation();
+    // Remove from pendingComments
+    pendingComments = pendingComments.filter(c =>
+      c.comment !== highlight.dataset.comment || c.snippet !== highlight.dataset.snippet
+    );
+    // Unwrap highlight
+    const parent = highlight.parentNode;
+    while (highlight.firstChild) parent.insertBefore(highlight.firstChild, highlight);
+    parent.removeChild(highlight);
+
+    tooltip.remove();
+    activeTooltip = null;
+  };
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'ai-suite-button primary';
+  sendBtn.textContent = 'Send';
+  sendBtn.onclick = (e) => {
+    e.stopPropagation();
+    const generatedPrompt = `### 📝 Code Context\n**Snippet:** \`${highlight.dataset.snippet}\`\n\n### 💡 Instruction\n${highlight.dataset.comment}`;
+    refinePrompt(generatedPrompt);
+    tooltip.remove();
+    activeTooltip = null;
+  };
+
+  actions.appendChild(deleteBtn);
+  actions.appendChild(sendBtn);
+  tooltip.appendChild(actions);
+
+  document.body.appendChild(tooltip);
+  activeTooltip = tooltip;
+
+  const rect = highlight.getBoundingClientRect();
+  const scrollX = window.scrollX || window.pageXOffset;
+  const scrollY = window.scrollY || window.pageYOffset;
+  tooltip.style.left = `${scrollX + rect.left}px`;
+  tooltip.style.top = `${scrollY + rect.bottom + 2}px`;
+
+  tooltip.onmouseleave = (e) => {
+    setTimeout(() => {
+      if (activeTooltip && !activeTooltip.matches(':hover') && !highlight.matches(':hover')) {
+        tooltip.remove();
+        activeTooltip = null;
+      }
+    }, 100);
+  };
+}
+
+document.addEventListener('mouseup', handleSelectionChange);
+
 setInterval(() => {
   injectCodeButtons();
   injectRefineGlobal();
   injectPromptLibrary();
   monitorGeneration();
 }, 1000);
+

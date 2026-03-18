@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
   "name": "AI Studio Pro",
-  "version": "3.0.1",
+  "version": "1.2.0",
   "description": "Premium AI assistant suite for ChatGPT and Gemini.",
   "permissions": ["storage", "downloads"],
   "browser_specific_settings": {
     "gecko": {
-      "id": "{585b3f26-0812-469d-ac93-93d8ce8d983c}"
+      "id": "{585b3f26-0812-469d-ac93-93d8ce8d983c}",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "action": {

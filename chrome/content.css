@@ -246,7 +246,8 @@
 .ai-studio-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 6px !important; /* Standardized spacing */
+  gap: 6px !important;
+  /* Standardized spacing */
 }
 
 .ai-studio-prompt-item.custom {
@@ -351,8 +352,10 @@
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  margin-bottom: 6px !important; /* 6px gap for all items */
+  margin-bottom: 6px !important;
+  /* 6px gap for all items */
 }
+
 /* No double margin in grid */
 .ai-studio-grid .ai-studio-prompt-item {
   margin-bottom: 0 !important;
@@ -406,6 +409,18 @@
   }
 }
 
+@keyframes aiFadeInModal {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
 .ai-suite-button {
   animation: aiFadeIn 0.3s ease-out;
 }
@@ -447,20 +462,24 @@
   max-height: 350px;
   overflow-y: auto;
   padding-right: 8px;
-  margin: 0 -8px 0 0; /* Align scrollbar */
+  margin: 0 -8px 0 0;
+  /* Align scrollbar */
 }
 
 /* Custom Scrollbar for Modal */
 .var-inputs-container::-webkit-scrollbar {
   width: 6px;
 }
+
 .var-inputs-container::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .var-inputs-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
+
 .var-inputs-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -500,4 +519,125 @@
   justify-content: center;
   padding: 12px !important;
   font-size: 14px !important;
+}
+
+/* CODE COMMENTING FEATURE - MINIMALIST */
+.ai-studio-comment-trigger {
+  position: absolute;
+  padding: 6px 12px !important;
+  background: var(--accent) !important;
+  color: white !important;
+  border-radius: 20px !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  z-index: 2000000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  animation: aiFadeIn 0.2s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(5px);
+}
+
+.ai-studio-comment-trigger svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ai-studio-comment-box {
+  position: absolute;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 2000001;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: aiFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  min-width: 420px;
+}
+
+.ai-studio-comment-box input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 13px !important;
+  outline: none !important;
+}
+
+.ai-studio-comment-box input:focus {
+  border-color: var(--accent) !important;
+}
+
+.ai-studio-comment-box .ai-suite-button-group {
+  display: flex !important;
+  gap: 6px !important;
+}
+
+.ai-studio-comment-box .ai-suite-button {
+  padding: 6px 10px !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+}
+
+/* HIGHLIGHTS & TOOLTIPS */
+.ai-studio-comment-highlight {
+  background-color: rgba(139, 92, 246, 0.25) !important;
+  border-bottom: 2px solid var(--accent) !important;
+  cursor: help !important;
+  transition: background-color 0.2s ease !important;
+  position: relative !important;
+  border-radius: 2px !important;
+}
+
+.ai-studio-comment-highlight:hover {
+  background-color: rgba(139, 92, 246, 0.4) !important;
+}
+
+.ai-studio-comment-tooltip {
+  position: absolute;
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  z-index: 2000005;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  animation: aiFadeIn 0.2s ease-out;
+  min-width: 250px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: 'Outfit', sans-serif !important;
+  pointer-events: auto !important;
+}
+
+.ai-studio-comment-tooltip .tooltip-text {
+  color: white;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.ai-studio-comment-tooltip .tooltip-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ai-studio-comment-tooltip .ai-suite-button {
+  padding: 4px 10px !important;
+  font-size: 11px !important;
 }

@@ -1,13 +1,8 @@
-# OS generated files
+node_modules/
 .DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE files
+*.zip
+*.xpi
+*.crx
+chrome/content.js.new
 .vscode/
 .idea/
-
-# Extension specific
-*.zip
-*.crx
-*.xpi
