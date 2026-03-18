@@ -15,7 +15,7 @@ Antigravity is my IDE of choice, providing advanced AI-powered coding capabiliti
 | Keybind | Action |
 | --- | --- |
 | `Ctrl+Shift+L` | Toggle Prompt Library |
-| `Ctrl+Shift+R` | Refine the last prompt |
+| `Ctrl+Shift+R` | Refine the last prompt (Pastes your previous prompt back into the textbox for quick refining.) |
 | `Ctrl+Shift+S` | Save the current code block |
 
 ## Dynamic Variables
