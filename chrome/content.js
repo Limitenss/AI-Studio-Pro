@@ -63,7 +63,7 @@ try {
 
 chrome.storage.onChanged.addListener((changes) => {
   if (changes.autocopy) autocopyEnabled = changes.autocopy.newValue;
-  if (changes.customPrompts) customPrompts = changes.customPrompts.newValue;
+  if (changes.workspaces) workspaces = changes.workspaces.newValue;
 });
 
 /**
@@ -637,7 +637,12 @@ function exportSession() {
 }
 
 function toggleSidebar() {
-  const sidebar = document.getElementById('ai-studio-sidebar');
+  let sidebar = document.getElementById('ai-studio-sidebar');
+  if (!sidebar) {
+    injectPromptLibrary();
+    sidebar = document.getElementById('ai-studio-sidebar');
+  }
+  
   if (sidebar) {
     sidebar.classList.toggle('active');
   }
@@ -649,18 +654,25 @@ function toggleSidebar() {
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.shiftKey) {
     const key = e.key.toUpperCase();
-    if (key === 'R' || key === 'S' || key === 'L') {
+    const code = e.code;
+
+    // Detect R (Refine), S (Save), L/Space (Library/Sidebar)
+    const isR = (key === 'R' || code === 'KeyR');
+    const isS = (key === 'S' || code === 'KeyS');
+    const isL = (key === 'L' || code === 'KeyL' || key === ' ' || code === 'Space');
+
+    if (isR || isS || isL) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
 
-      if (key === 'R') {
+      if (isR) {
         const lp = findLastUserPrompt();
         if (lp) refinePrompt(lp);
-      } else if (key === 'S') {
+      } else if (isS) {
         const blocks = document.querySelectorAll('pre');
         if (blocks.length > 0) saveCodeBlock(blocks[blocks.length - 1]);
-      } else if (key === 'L') {
+      } else if (isL) {
         toggleSidebar();
       }
     }
