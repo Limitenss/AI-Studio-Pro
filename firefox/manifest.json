@@ -9,6 +9,12 @@
     "https://claude.ai/*",
     "https://gemini.google.com/*"
   ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{585b3f26-0812-469d-ac93-93d8ce8d983c}",
+      "strict_min_version": "109.0"
+    }
+  },
   "action": {
     "default_popup": "popup.html"
   },

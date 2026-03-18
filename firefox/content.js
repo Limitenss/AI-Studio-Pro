@@ -443,18 +443,39 @@ function showVariableForm(template, variables) {
   const overlay = document.createElement('div');
   overlay.className = 'variable-form-overlay';
 
-  let formHTML = '<h3>Fill Variables</h3>'
-  formHTML += '<div class="var-inputs-container">';
+  const header = document.createElement('h3');
+  header.textContent = 'Fill Variables';
+  overlay.appendChild(header);
+
+  const container = document.createElement('div');
+  container.className = 'var-inputs-container';
   variables.forEach(v => {
-    formHTML += `<input type="text" placeholder="${v}" data-var="${v}" class="var-input">`;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = v;
+    input.dataset.var = v;
+    input.className = 'var-input';
+    container.appendChild(input);
   });
-  formHTML += '</div>';
-  formHTML += `
-    <div class="form-actions">
-      <button id="inject-var-btn" class="ai-suite-button primary">Inject</button>
-      <button id="cancel-var-btn" class="ai-suite-button">Cancel</button>
-    </div>`;
-  overlay.innerHTML = formHTML;
+  overlay.appendChild(container);
+
+  const actions = document.createElement('div');
+  actions.className = 'form-actions';
+  
+  const injectBtn = document.createElement('button');
+  injectBtn.id = 'inject-var-btn';
+  injectBtn.className = 'ai-suite-button primary';
+  injectBtn.textContent = 'Inject';
+  
+  const cancelBtn = document.createElement('button');
+  cancelBtn.id = 'cancel-var-btn';
+  cancelBtn.className = 'ai-suite-button';
+  cancelBtn.textContent = 'Cancel';
+
+  actions.appendChild(injectBtn);
+  actions.appendChild(cancelBtn);
+  overlay.appendChild(actions);
+
   document.body.appendChild(overlay);
 
   // Draggable Implementation
@@ -505,9 +526,14 @@ function renderSidebarItems() {
   if (!container || !wsSelect) return;
 
   // Update Select Options
-  wsSelect.innerHTML = workspaces.map(ws =>
-    `<option value="${ws.id}" ${ws.id === currentWorkspaceId ? 'selected' : ''}>${ws.name}</option>`
-  ).join('');
+  wsSelect.textContent = '';
+  workspaces.forEach(ws => {
+    const opt = document.createElement('option');
+    opt.value = ws.id;
+    opt.textContent = ws.name;
+    if (ws.id === currentWorkspaceId) opt.selected = true;
+    wsSelect.appendChild(opt);
+  });
 
   container.innerHTML = '';
   const currentWS = workspaces.find(ws => ws.id === currentWorkspaceId) || workspaces[0];
@@ -515,15 +541,30 @@ function renderSidebarItems() {
   currentWS.prompts.forEach((p, index) => {
     const item = document.createElement('div');
     item.className = 'ai-studio-prompt-item custom';
-    item.innerHTML = `
-      <div class="prompt-info">
-        <strong>${p.name}</strong>
-      </div>
-      <div class="prompt-actions">
-        <button class="ai-studio-move-btn" title="Move to Workspace">📦</button>
-        <button class="ai-studio-delete-btn" data-index="${index}">×</button>
-      </div>
-    `;
+    
+    const info = document.createElement('div');
+    info.className = 'prompt-info';
+    const strong = document.createElement('strong');
+    strong.textContent = p.name;
+    info.appendChild(strong);
+    item.appendChild(info);
+
+    const actions = document.createElement('div');
+    actions.className = 'prompt-actions';
+    
+    const moveBtn = document.createElement('button');
+    moveBtn.className = 'ai-studio-move-btn';
+    moveBtn.title = 'Move to Workspace';
+    moveBtn.textContent = '📦';
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'ai-studio-delete-btn';
+    deleteBtn.dataset.index = index;
+    deleteBtn.textContent = '×';
+
+    actions.appendChild(moveBtn);
+    actions.appendChild(deleteBtn);
+    item.appendChild(actions);
     item.onclick = (e) => {
       if (e.target.closest('.ai-studio-delete-btn') || e.target.closest('.ai-studio-move-btn')) return;
 
@@ -890,7 +931,11 @@ function showCommentTooltip(e, highlight) {
 
   const text = document.createElement('div');
   text.className = 'tooltip-text';
-  text.innerHTML = `<strong>Comment:</strong><br>${highlight.dataset.comment}`;
+  const label = document.createElement('strong');
+  label.textContent = 'Comment:';
+  text.appendChild(label);
+  text.appendChild(document.createElement('br'));
+  text.appendChild(document.createTextNode(highlight.dataset.comment));
   tooltip.appendChild(text);
 
   const actions = document.createElement('div');
