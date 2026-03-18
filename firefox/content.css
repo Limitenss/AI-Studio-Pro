@@ -246,7 +246,8 @@
 .ai-studio-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 6px !important; /* Standardized spacing */
+  gap: 6px !important;
+  /* Standardized spacing */
 }
 
 .ai-studio-prompt-item.custom {
@@ -351,8 +352,10 @@
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  margin-bottom: 6px !important; /* 6px gap for all items */
+  margin-bottom: 6px !important;
+  /* 6px gap for all items */
 }
+
 /* No double margin in grid */
 .ai-studio-grid .ai-studio-prompt-item {
   margin-bottom: 0 !important;
@@ -395,13 +398,27 @@
 
 /* Animations */
 @keyframes aiFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes aiFadeInModal {
-  from { opacity: 0; transform: translate(-50%, -45%); }
-  to { opacity: 1; transform: translate(-50%, -50%); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .ai-suite-button {
@@ -445,20 +462,24 @@
   max-height: 350px;
   overflow-y: auto;
   padding-right: 8px;
-  margin: 0 -8px 0 0; /* Align scrollbar */
+  margin: 0 -8px 0 0;
+  /* Align scrollbar */
 }
 
 /* Custom Scrollbar for Modal */
 .var-inputs-container::-webkit-scrollbar {
   width: 6px;
 }
+
 .var-inputs-container::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .var-inputs-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
+
 .var-inputs-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
