@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "AI Studio Pro",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "description": "Premium AI assistant suite for ChatGPT and Gemini.",
-  "version_name": "1.2.0 - Glass",
+  "version_name": "1.2.2 - Glass",
   "permissions": ["storage", "downloads"],
   "host_permissions": [
     "https://chatgpt.com/*",
