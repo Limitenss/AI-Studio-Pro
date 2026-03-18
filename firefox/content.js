@@ -648,22 +648,24 @@ function toggleSidebar() {
  */
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.shiftKey) {
-    if (e.key.toUpperCase() === 'R') {
+    const key = e.key.toUpperCase();
+    if (key === 'R' || key === 'S' || key === 'L') {
       e.preventDefault();
-      const lp = findLastUserPrompt();
-      if (lp) refinePrompt(lp);
-    }
-    if (e.key.toUpperCase() === 'S') {
-      e.preventDefault();
-      const blocks = document.querySelectorAll('pre');
-      if (blocks.length > 0) saveCodeBlock(blocks[blocks.length - 1]);
-    }
-    if (e.key.toUpperCase() === 'L') {
-      e.preventDefault();
-      toggleSidebar();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      if (key === 'R') {
+        const lp = findLastUserPrompt();
+        if (lp) refinePrompt(lp);
+      } else if (key === 'S') {
+        const blocks = document.querySelectorAll('pre');
+        if (blocks.length > 0) saveCodeBlock(blocks[blocks.length - 1]);
+      } else if (key === 'L') {
+        toggleSidebar();
+      }
     }
   }
-});
+}, true);
 
 /**
  * CODE COMMENTING FEATURE (MULTI-COMMENT SUPPORT WITH VISUAL HIGHLIGHTS)
