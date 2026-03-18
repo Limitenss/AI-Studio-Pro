@@ -5,6 +5,9 @@ A developer toolset for ChatGPT and Gemini that adds code block management, live
 ## AI Declaration
 Antigravity is my IDE of choice, providing advanced AI-powered coding capabilities.
 
+## Warning
+The chrome version of the extension has some issues with the hotkeys, the keybind for the library is Ctrl+Shift+Space, not Ctrl+Shift+L.
+
 ## Showcase
 
 ![Gemini interface showing AI Studio Pro code block management with Save As and Preview buttons](demo/4vmczaua.png)
