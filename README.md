@@ -18,6 +18,8 @@ Antigravity is my IDE of choice, providing advanced AI-powered coding capabiliti
 | `Ctrl+Shift+R` | Refine the last prompt (Pastes your previous prompt back into the textbox for quick refining.) |
 | `Ctrl+Shift+S` | Save the current code block |
 
+Additionally, you can highlight any code block and click comment to add a comment, you can even add multiple comments to a single code block.
+
 ## Dynamic Variables
 
 Use `{{variable_name}}` anywhere in your custom prompt text. When selected, the extension will open a **movable glass modal** for you to fill in the placeholders before injection.
@@ -38,6 +40,9 @@ Use `{{variable_name}}` anywhere in your custom prompt text. When selected, the 
 1. Open `about:debugging`
 2. Click **This Firefox**
 3. Click `Load Temporary Add-on...` and select any file in the `/firefox` directory.
+
+### Support
+If you need any help with the extension, feel free to reach out to me at [limitens@protonmail.com](mailto:limitens@protonmail.com)
 
 ## License
 MIT. See `LICENSE`.
